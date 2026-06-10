@@ -230,8 +230,11 @@ the members must be not only diverse but comparably accurate. They are not. The 
 weaker than the CNNs (0.826 against 0.867 on Task A, and 0.534 against 0.635 on Task B), so
 giving it an equal vote pulls the average toward its mistakes. The bias injected by the
 weak member outweighs the variance removed by averaging. A weighted vote, with each model
-weighted by its validation score, would be the principled fix, but since the single
-augmented CNN already beats the ensemble there is no reason to keep the heavier model.
+weighted by its validation macro-F1, would be the principled fix: replacing the equal mean
+with a weighted average down-weights the MLP so its mistakes no longer dominate, which the
+theory predicts should recover at least the best member's score. Since the single augmented
+CNN already beats the equal-weight ensemble, and a weighted vote can at best match it here,
+there is no reason to keep the heavier three-model committee.
 
 This negative result is itself informative: it shows that ensembling is not a free upgrade
 but a technique with a precondition, and that precondition was not met here.
@@ -344,11 +347,14 @@ kept entirely separate does this show up at all. Had I split by image, leakage w
 hidden the whole story and I would have reported a number the model could not deliver in
 practice. The gap is not a flaw in the experiment; it *is* the finding.
 
-Closing this gap would take more than augmentation. The most promising directions are
-class-balanced training to stop the rare classes being drowned out, and, more
-fundamentally, a larger and more varied set of patients so the model can learn what is
-common to a cell type across people rather than what is incidental to the patients it
-happened to train on.
+Closing this gap would take more than augmentation. The most direct lever is class-balanced
+training: passing inverse-frequency class weights to the loss (the `class_weights` argument
+the training loop already supports) so the *other* and fibroblast classes are no longer
+drowned out by the common ones, which should raise their recall at some cost to the majority
+classes. More fundamentally, the deeper fix is data, not modelling: a larger and more varied
+set of patients, so the rare classes appear in enough people for the model to learn what is
+common to a cell type *across* patients rather than what is incidental to the handful it
+trained on. The first is a quick experiment; the second is the real ceiling.
 
 ## H. Ethical Considerations and Professional Responsibilities
 
